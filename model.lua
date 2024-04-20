@@ -22,7 +22,11 @@ end;
 
 function tick()
   repeat
-    gameField:DestroyCells();
+    if (gameField:DestroyCells()) then
+      print("----Cells destroyed----");
+      dump();
+      print("-----------------------");
+    end;
     gameField:UpdateCells();
     dump();
   until(#gameField.combinations == 0)
@@ -35,13 +39,19 @@ function dump()
 end;
 
 function move(from, to)
-  gameField:TrySwap(from, to)
+  if (gameField:TrySwap(from, to)) then
+    print("Move "..from.x..":"..from.y.." to "..to.x..":"..to.y);
+  else
+    print("Can't move");
+  end;
   tick();
 end;
 
 function waitInput()
+  print("Enter command...");
   while commandReceiver:ReceiveCommand() == false do
-    print("неверная команда");
+    print("Wrong command!");
+  print("Enter command...");
   end;
 end;
 

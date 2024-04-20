@@ -97,6 +97,10 @@ function GameField:AddToUpdateQueue(x, y)
 end
 
 function GameField:DestroyCells()
+  if (self.combinations == nil or #self.combinations == 0) then
+    return false;
+  end;
+  
   for _, combo in pairs(self.combinations) do
     if (combo.left ~= nil) then 
       for x = combo.left, combo.right do
@@ -111,6 +115,8 @@ function GameField:DestroyCells()
   end;
   
   self.combinations = {};
+  
+  return true;
 end
 
 function GameField:UpdateCells()
