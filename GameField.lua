@@ -60,6 +60,10 @@ function GameField:SetCell(x, y, cellType)
   end;
 end
 
+function GameField:ClearCell(x, y)
+  self:SetCell(x, y, "empty");
+end
+
 function GameField:AddToUpdateQueue(x, y)
   if (self.updateQueue[x] == nil or self.updateQueue[x] < y) then
     self.updateQueue[x] = y;
@@ -68,10 +72,6 @@ end
 
 function GameField:ClearUpdateQueue(x, y)
   self.updateQueue = {};
-end
-
-function GameField:ClearCell(x, y)
-  self:SetCell(x, y, "empty");
 end
 
 function GameField:UpdateCells()

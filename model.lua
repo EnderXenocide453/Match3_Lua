@@ -1,10 +1,13 @@
 local GameField = require "GameField";
 local FieldView = require "FieldView";
+math.randomseed(os.time());
 
 local gameField = GameField:new(10, 10, {"A", "B", "C", "D", "E", "F"});
 local fieldView = FieldView:new(gameField);
 gameField:Init();
 fieldView:DrawField();
+
+--Tests
 gameField:ClearCell(5, 5);
 gameField:ClearCell(5, 4);
 gameField:ClearCell(5, 3);
