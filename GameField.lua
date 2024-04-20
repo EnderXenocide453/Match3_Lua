@@ -8,7 +8,8 @@ function GameField:new(width, height, cellTypes)
 	local obj = {
 		width = width,
 		height = height,
-		cellTypes = cellTypes
+		cellTypes = cellTypes,
+    updateQueue = {}
 	};
   
   obj.grid = {};
@@ -52,10 +53,35 @@ function GameField:GenerateCell(x, y)
 	end;
 end
 
-function GameField:ClearCell(x, y)
-  if (x > 0 and x <= self.width and y > 0 and y < self.height) then
-    self.grid[x][y]:SetType("empty");
+function GameField:SetCell(x, y, cellType)
+  if (x > 0 and x <= self.width and y > 0 and y <= self.height) then
+    self.grid[x][y]:SetType(cellType);
+    self:AddToUpdateQueue(x, y);
   end;
+end
+
+function GameField:AddToUpdateQueue(x, y)
+  if (self.updateQueue[x] == nil or self.updateQueue[x] < y) then
+    self.updateQueue[x] = y;
+  end;
+end
+
+function GameField:ClearUpdateQueue(x, y)
+  self.updateQueue = {};
+end
+
+function GameField:ClearCell(x, y)
+  self:SetCell(x, y, "empty");
+end
+
+function GameField:UpdateCells()
+  for x = 1, self.width do
+    if (self.updateQueue[x] ~= nil) then
+      self:UpdateCell(x, self.updateQueue[x])
+    end;
+  end;
+  
+  self:ClearUpdateQueue();
 end
 
 function GameField:UpdateCell(x, y)
@@ -66,19 +92,19 @@ function GameField:UpdateCell(x, y)
       end;
       for j = i - 1, 1, -1 do
         if (self.grid[x][j].cellType ~= "empty") then
-          self.grid[x][i]:SetType(self.grid[x][j].cellType);
+          self:SetCell(x, i, self.grid[x][j].cellType);
           self:ClearCell(x, j);
           break;
         end;
         if (j == 1) then
-          self.grid[x][i]:SetType(self.cellTypes[math.random(1, #self.cellTypes)]);
+          self:SetCell(x, i, self.cellTypes[math.random(1, #self.cellTypes)]);
         end;
       end;
       ::continue::
     end;
     
     if (self.grid[x][1].cellType == "empty") then
-      self.grid[x][1]:SetType(self.cellTypes[math.random(1, #self.cellTypes)]);
+      self:SetCell(x, 1, self.cellTypes[math.random(1, #self.cellTypes)]);
     end;
   end;
 end
