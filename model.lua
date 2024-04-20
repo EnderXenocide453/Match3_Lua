@@ -15,6 +15,7 @@ end;
 function tick()
   repeat
     gameField:DestroyCells();
+    dump();
     gameField:UpdateCells();
     dump();
   until(#gameField.combinations == 0)
@@ -24,8 +25,18 @@ function dump()
   fieldView:DrawField();
 end;
 
+function move(from, to)
+  if gameField:TrySwap(from, to) then
+    tick();
+  end
+end;
+
 init();
-tick();
+for i = 1, 100 do
+  x = math.random(1, 9);
+  y = math.random(1, 10);
+  move({x = x, y = y}, {x = x + 1, y = y});
+end;
 --[[Tests
 gameField:ClearCell(5, 5);
 gameField:ClearCell(5, 4);

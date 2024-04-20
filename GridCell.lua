@@ -10,7 +10,7 @@ function GridCell:new(cellTypes)
   
   local obj = {
     possibleTypes = possibleTypes,
-    cellType = "empty"
+    cellType = emptySymbol;
   };
   
   setmetatable(obj, self);

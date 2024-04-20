@@ -1,3 +1,4 @@
+emptySymbol = " ";
 local GridCell = require("GridCell");
 
 local GameField = {};
@@ -63,7 +64,30 @@ function GameField:SetCell(x, y, cellType)
 end
 
 function GameField:ClearCell(x, y)
-  self:SetCell(x, y, "empty");
+  self:SetCell(x, y, emptySymbol);
+end
+
+function GameField:TrySwap(from, to)
+  if (from == to) then
+    return false;
+  end;
+  
+  local fromType = self.grid[from.x][from.y].cellType;
+  local toType = self.grid[to.x][to.y].cellType;
+  
+  self:SetCell(from.x, from.y, toType);
+  self:SetCell(to.x, to.y, fromType);
+  
+  self:CheckCombinations();
+  --Если нет комбинаций, перемещение невозможно
+  if (#self.combinations == 0) then
+    self:SetCell(from.x, from.y, fromType);
+    self:SetCell(to.x, to.y, toType);
+    
+    return false;
+  end;
+  
+  return true;
 end
 
 function GameField:AddToUpdateQueue(x, y)
@@ -100,13 +124,13 @@ function GameField:UpdateCells()
 end
 
 function GameField:UpdateCell(x, y)
-  if (x > 0 and x <= self.width and y > 0 and y < self.height) then
+  if (x > 0 and x <= self.width and y > 0 and y <= self.height) then
     for i = y, 1, -1 do
-      if (self.grid[x][i].cellType ~= "empty") then      
+      if (self.grid[x][i].cellType ~= emptySymbol) then      
         goto continue;
       end;
       for j = i - 1, 1, -1 do
-        if (self.grid[x][j].cellType ~= "empty") then
+        if (self.grid[x][j].cellType ~= emptySymbol) then
           self:SetCell(x, i, self.grid[x][j].cellType);
           self:ClearCell(x, j);
           break;
@@ -118,7 +142,7 @@ function GameField:UpdateCell(x, y)
       ::continue::
     end;
     
-    if (self.grid[x][1].cellType == "empty") then
+    if (self.grid[x][1].cellType == emptySymbol) then
       self:SetCell(x, 1, self.cellTypes[math.random(1, #self.cellTypes)]);
     end;
   end;
@@ -130,7 +154,7 @@ function GameField:CheckCombinations()
   for x, depth in pairs(self.updateQueue) do
     for y = 1, depth do
       local combination = self:CheckCombination(x, y, self.grid);
-      if (combination.count ~= 0) then
+      if (combination ~= nil) then
         self.combinations[#self.combinations + 1] = combination;
       end;
     end;
@@ -144,7 +168,7 @@ function GameField:CheckCombination(x, y, grid)
     y = y
   };
   
-  if (grid[x][y] == nil or grid[x][y].cellType == "empty") then
+  if (grid[x][y] == nil or grid[x][y].cellType == emptySymbol) then
     return combination;
   end;
   
@@ -152,15 +176,15 @@ function GameField:CheckCombination(x, y, grid)
   --Проход влево пока он возможен
   local left = x;
   while left > 1 do
-    if (grid[x][y].cellType ~= grid[left - 1][y]) then
+    if (grid[x][y].cellType ~= grid[left - 1][y].cellType) then
       break;
     end;
-    left = i - 1;
+    left = left - 1;
   end;
   --Проход вправо
   local right = x;
   while right < self.width do
-    if (grid[x][y].cellType ~= grid[right + 1][y]) then
+    if (grid[x][y].cellType ~= grid[right + 1][y].cellType) then
       break;
     end;
     right = right + 1;
@@ -176,15 +200,15 @@ function GameField:CheckCombination(x, y, grid)
   --Проход влево пока он возможен
   local up = y;
   while up > 1 do
-    if (grid[x][y].cellType ~= grid[x][up - 1]) then
+    if (grid[x][y].cellType ~= grid[x][up - 1].cellType) then
       break;
     end;
-    up = i - 1;
+    up = up - 1;
   end;
   --Проход вправо
   local down = y;
   while down < self.height do
-    if (grid[x][y].cellType ~= grid[x][down + 1]) then
+    if (grid[x][y].cellType ~= grid[x][down + 1].cellType) then
       break;
     end;
     down = down + 1;
@@ -196,7 +220,10 @@ function GameField:CheckCombination(x, y, grid)
     combination.down = down;
   end;
   
-  return combination;
+  if (combination.count > 1) then
+    return combination;
+  end;
+  return nil;
 end;
 
 return GameField;
