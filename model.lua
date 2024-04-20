@@ -2,12 +2,31 @@ local GameField = require "GameField";
 local FieldView = require "FieldView";
 math.randomseed(os.time());
 
-local gameField = GameField:new(10, 10, {"A", "B", "C", "D", "E", "F"});
-local fieldView = FieldView:new(gameField);
-gameField:Init();
-fieldView:DrawField();
+local gameField;
+local fieldView;
 
---Tests
+function init()
+  gameField = GameField:new(10, 10, {"A", "B", "C", "D", "E", "F"});
+  fieldView = FieldView:new(gameField);
+  gameField:Init();
+  dump();
+end;
+
+function tick()
+  repeat
+    gameField:DestroyCells();
+    gameField:UpdateCells();
+    dump();
+  until(#gameField.combinations == 0)
+end;
+
+function dump()
+  fieldView:DrawField();
+end;
+
+init();
+tick();
+--[[Tests
 gameField:ClearCell(5, 5);
 gameField:ClearCell(5, 4);
 gameField:ClearCell(5, 3);
@@ -25,4 +44,4 @@ gameField:ClearCell(2, 9);
 gameField:ClearCell(3, 9);
 fieldView:DrawField();
 gameField:UpdateCells();
-fieldView:DrawField();
+fieldView:DrawField();]]

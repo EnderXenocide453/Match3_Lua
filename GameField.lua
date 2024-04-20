@@ -9,6 +9,7 @@ function GameField:new(width, height, cellTypes)
 		width = width,
 		height = height,
 		cellTypes = cellTypes,
+    combinations = {},
     updateQueue = {}
 	};
   
@@ -54,7 +55,8 @@ function GameField:GenerateCell(x, y)
 end
 
 function GameField:SetCell(x, y, cellType)
-  if (x > 0 and x <= self.width and y > 0 and y <= self.height) then
+  --Если не выходит за рамки и не такой же
+  if (x > 0 and x <= self.width and y > 0 and y <= self.height and self.grid[x][y].cellType ~= cellType) then
     self.grid[x][y]:SetType(cellType);
     self:AddToUpdateQueue(x, y);
   end;
@@ -70,18 +72,31 @@ function GameField:AddToUpdateQueue(x, y)
   end;
 end
 
-function GameField:ClearUpdateQueue(x, y)
-  self.updateQueue = {};
-end
-
-function GameField:UpdateCells()
-  for x = 1, self.width do
-    if (self.updateQueue[x] ~= nil) then
-      self:UpdateCell(x, self.updateQueue[x])
+function GameField:DestroyCells()
+  for _, combo in pairs(self.combinations) do
+    if (combo.left ~= nil) then 
+      for x = combo.left, combo.right do
+        self:ClearCell(x, combo.y);
+      end;
+    end;
+    if (combo.up ~= nil) then 
+      for y = combo.up, combo.down do
+        self:ClearCell(combo.x, y);
+      end;
     end;
   end;
   
-  self:ClearUpdateQueue();
+  self.combinations = {};
+end
+
+function GameField:UpdateCells()
+  for x, y in pairs(self.updateQueue) do
+    self:UpdateCell(x, y)
+  end;
+  
+  self:CheckCombinations();
+  
+  self.updateQueue = {};
 end
 
 function GameField:UpdateCell(x, y)
@@ -108,5 +123,80 @@ function GameField:UpdateCell(x, y)
     end;
   end;
 end
+
+function GameField:CheckCombinations()
+  self.combinations = {};
+  
+  for x, depth in pairs(self.updateQueue) do
+    for y = 1, depth do
+      local combination = self:CheckCombination(x, y, self.grid);
+      if (combination.count ~= 0) then
+        self.combinations[#self.combinations + 1] = combination;
+      end;
+    end;
+  end;
+end;
+
+function GameField:CheckCombination(x, y, grid)
+  local combination = {
+    count = 1,
+    x = x,
+    y = y
+  };
+  
+  if (grid[x][y] == nil or grid[x][y].cellType == "empty") then
+    return combination;
+  end;
+  
+  --Поиск по горизонтали
+  --Проход влево пока он возможен
+  local left = x;
+  while left > 1 do
+    if (grid[x][y].cellType ~= grid[left - 1][y]) then
+      break;
+    end;
+    left = i - 1;
+  end;
+  --Проход вправо
+  local right = x;
+  while right < self.width do
+    if (grid[x][y].cellType ~= grid[right + 1][y]) then
+      break;
+    end;
+    right = right + 1;
+  end;
+  --Если совпадений достаточно для комбинации, записываем
+  if (right - left) >= 2 then
+    combination.count = combination.count + right - left;
+    combination.left = left;
+    combination.right = right;
+  end;
+  
+  --Проход по вертикали
+  --Проход влево пока он возможен
+  local up = y;
+  while up > 1 do
+    if (grid[x][y].cellType ~= grid[x][up - 1]) then
+      break;
+    end;
+    up = i - 1;
+  end;
+  --Проход вправо
+  local down = y;
+  while down < self.height do
+    if (grid[x][y].cellType ~= grid[x][down + 1]) then
+      break;
+    end;
+    down = down + 1;
+  end;
+  --Если совпадений достаточно для комбинации, записываем
+  if (down - up) >= 2 then
+    combination.count = combination.count + down - up;
+    combination.up = up;
+    combination.down = down;
+  end;
+  
+  return combination;
+end;
 
 return GameField;
