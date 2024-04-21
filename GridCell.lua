@@ -17,6 +17,7 @@ function GridCell:new(cellTypes)
   return obj;
 end;
 
+--Убрать тип из списка возможных
 function GridCell:RemovePossibleType(cellType)
   for k, v in pairs(self.possibleTypes) do  
     if (v == cellType) then
@@ -25,6 +26,7 @@ function GridCell:RemovePossibleType(cellType)
   end;
 end;
 
+--Возможно ли размещения типа в ячейке
 function GridCell:IsTypePossible(cellType)
   for _, value in pairs(self.possibleTypes) do
     if (value == cellType) then
@@ -35,6 +37,7 @@ function GridCell:IsTypePossible(cellType)
   return false;
 end;
 
+--Установить тип
 function GridCell:SetType(cellType)
   self.cellType = cellType;
 end;

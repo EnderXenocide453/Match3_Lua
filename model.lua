@@ -58,7 +58,7 @@ function waitInput()
   print("Enter command...");
   while commandReceiver:ReceiveCommand() == false do
     print("Wrong command!");
-  print("Enter command...");
+    print("Enter command...");
   end;
 end;
 
@@ -69,6 +69,7 @@ function checkForCombinations()
     dump();
   end;
 end;
+
 
 init();
 waitInput();

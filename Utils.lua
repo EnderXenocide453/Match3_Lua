@@ -1,3 +1,4 @@
+--Разделить строку
 function split (inputstr, sep)
         if sep == nil then
                 sep = "%s"
@@ -9,6 +10,7 @@ function split (inputstr, sep)
         return t
 end
 
+--Получить случайный ключ с вероятностью величины значения
 function getRandomWithWeights(weightedValues, totalCount)
   if (totalCount == nil) then
     totalCount = 0;
@@ -32,6 +34,7 @@ function getRandomWithWeights(weightedValues, totalCount)
     end;
 end
 
+--Скопировать одномерную таблицу
 function cloneTable(fromTable)
   local clone = {};
   for k, v in pairs(fromTable) do
@@ -40,6 +43,7 @@ function cloneTable(fromTable)
   return clone;
 end
 
+--Содержит ли таблица значение
 function containsValue(checkTable, value)
   for _,v in pairs(checkTable) do
     if (v == value) then

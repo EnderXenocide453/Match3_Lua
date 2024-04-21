@@ -1,4 +1,4 @@
---Абстракция команды
+--Базовая команда. По умолчанию её использование не приводит к вызову команд модели и завершает жизненный цикл
 local Command = {};
 Command.__index = Command;
 
@@ -9,6 +9,7 @@ function Command:new(name)
   return obj;
 end;
 
+--Попытка вызова
 function Command:TryExecute(args)
   print("Exit");
   io.read();
@@ -27,6 +28,7 @@ function MoveCommand:new(moveFunc)
   return obj;
 end;
 
+--Вызывает попытку перемещения ячейки в модели по указанным аргументам
 function MoveCommand:TryExecute(args)
   local x = tonumber(args[1]);
   local y = tonumber(args[2]);

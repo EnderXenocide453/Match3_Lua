@@ -1,3 +1,4 @@
+--Проверка комбинаций на поле
 function CheckCombinations(gameField)
   local combinations = {};
   
@@ -13,6 +14,7 @@ function CheckCombinations(gameField)
   return combinations;
 end;
 
+--Проверка участия ячейки в комбинации
 function CheckCombination(x, y, grid)
   local combination = {
     count = 1,
@@ -78,6 +80,7 @@ function CheckCombination(x, y, grid)
   return nil;
 end;
 
+--Проверка возможности смены местами ячеек
 function IsCanSwap(gameField, from, to)
   if (from.x < 1 or from.x > gameField.width 
       or from.y < 1 or from.y > gameField.height
@@ -111,6 +114,7 @@ function IsCanSwap(gameField, from, to)
   return canSwap;
 end;
 
+--Проверка возможности составить комбинации на поле
 function CheckCombinationPossibility(gameField)
   for x = 1, gameField.width - 1 do
     for y = 1, gameField.height - 1 do
