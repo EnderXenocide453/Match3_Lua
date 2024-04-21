@@ -1,4 +1,5 @@
 emptySymbol = " ";
+local Utils = require("Utils");
 local GridCell = require("GridCell");
 local CombinationsChecker = require("CombinationsChecker");
 
@@ -44,9 +45,45 @@ function GameField:Init()
 	end
 end
 
+--Заполнение пустыми ячейками
+function GameField:ClearField()
+  for _,v in pairs(self.cellTypes) do
+    self.cellsCount[v] = 0;
+  end;
+  self.cellsCount[emptySymbol] = self.width * self.height;
+  self.count = self.width * self.height;
+  
+  for x = 1, self.width do
+    self.grid[x] = {};
+		for y = 1, self.height do
+			self.grid[x][y] = GridCell:new(self.cellTypes);
+		end
+	end
+end;
+
 --Перемешивание
 function GameField:Mix()
-  print("Mix");
+  local cellsCount = Utils.cloneTable(self.cellsCount);
+  local tries = 0;
+  self:ClearField();
+  
+  ::again::
+  if (tries > 100) then
+    self:ClearField();
+    self:Init();
+    return;
+  end;
+  
+  tries = tries + 1;
+  local weights = Utils.cloneTable(cellsCount);
+  
+  for x = 1, self.width do
+		for y = 1, self.height do
+      if (not self:GenerateCellFromWeights(x, y, weights)) then
+        goto again;
+      end;
+		end
+	end
 end
 
 --Генерация подходящей ячейки в координатах X и Y
@@ -62,6 +99,34 @@ function GameField:GenerateCell(x, y)
     self.grid[x][y+1]:RemovePossibleType(cellType);
 	end;
 end
+
+function GameField:GenerateCellFromWeights(x, y, weights)
+  local possibleTypes = {};
+  local count = 0;
+  for k, v in pairs(weights) do
+    if (Utils.containsValue(self.grid[x][y].possibleTypes, k)) then
+      possibleTypes[k] = v;
+      count = count + v;
+    end;
+  end;
+  
+  if (count == 0) then
+    return false;
+  end;
+  
+	local cellType = Utils.getRandomWithWeights(possibleTypes, count);
+  self:SetCell(x, y, cellType, true);
+  weights[cellType] = weights[cellType] - 1;
+  
+  if (x > 1 and x < self.width and self.grid[x-1][y].cellType == cellType) then
+    self.grid[x+1][y]:RemovePossibleType(cellType);
+	end;
+  if (y > 1 and y < self.height and self.grid[x][y-1].cellType == cellType) then
+    self.grid[x][y+1]:RemovePossibleType(cellType);
+	end;
+  
+  return true;
+end;
 
 function GameField:SetCell(x, y, cellType, withoutUpdate)
   --Если не выходит за рамки и не такой же

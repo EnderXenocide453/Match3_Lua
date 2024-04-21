@@ -37,9 +37,6 @@ function tick()
     dump();
   until(#gameField.combinations == 0)
   
-  for k, v in pairs(gameField.cellsCount) do
-    print(k..": "..v);
-  end;
   checkForCombinations();
   waitInput();
 end;
@@ -67,6 +64,7 @@ end;
 
 function checkForCombinations()
   while (not CombinationsChecker.CheckCombinationPossibility(gameField)) do
+    print("Mix field...");
     gameField:Mix();
     dump();
   end;

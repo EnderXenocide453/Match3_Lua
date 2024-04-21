@@ -32,7 +32,26 @@ function getRandomWithWeights(weightedValues, totalCount)
     end;
 end
 
+function cloneTable(fromTable)
+  local clone = {};
+  for k, v in pairs(fromTable) do
+    clone[k] = v;
+  end;
+  return clone;
+end
+
+function containsValue(checkTable, value)
+  for _,v in pairs(checkTable) do
+    if (v == value) then
+      return true;
+    end;
+  end;
+  return false;
+end
+
 return {
   split = split,
-  getRandomWithWeights = getRandomWithWeights
+  getRandomWithWeights = getRandomWithWeights,
+  cloneTable = cloneTable,
+  containsValue = containsValue
 };
