@@ -12,12 +12,13 @@ local commandReceiver;
 local width = 10;
 local height = 10;
 local cellTypes = {"A", "B", "C", "D", "E", "F"};
+local isTerminate = false;
 
 function init()
   commandReceiver = CommandReceiver:new(
     {
       Commands.MoveCommand:new(move),
-      Commands.Command:new()
+      Commands.CallCommand:new("q", quit)
     });
   gameField = GameField:new(width, height, cellTypes);
   fieldView = FieldView:new(gameField);
@@ -38,7 +39,6 @@ function tick()
   until(#gameField.combinations == 0)
   
   checkForCombinations();
-  waitInput();
 end;
 
 function dump()
@@ -71,8 +71,18 @@ function checkForCombinations()
 end;
 
 
+function quit()
+  print("Quit...");
+  isTerminate = true;
+end;
+
 init();
-waitInput();
+while (true) do
+  waitInput();
+  if (isTerminate) then break; end;
+    
+  tick();
+end;
 
 return {
   move = move

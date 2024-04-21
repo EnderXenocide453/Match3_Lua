@@ -1,9 +1,9 @@
---Базовая команда. По умолчанию её использование не приводит к вызову команд модели и завершает жизненный цикл
+--"Абстракция" команды
 local Command = {};
 Command.__index = Command;
 
 function Command:new(name)
-  local obj = { name = name or "q" }
+  local obj = { name = name }
   
   setmetatable(obj, self);
   return obj;
@@ -11,9 +11,7 @@ end;
 
 --Попытка вызова
 function Command:TryExecute(args)
-  print("Exit");
-  io.read();
-  return true;
+  return false;
 end;
 
 --Команда для взаимодействия с полем
@@ -58,7 +56,27 @@ function MoveCommand:TryExecute(args)
   return true;
 end;
 
+--Команда вызова функции без аргументов
+local CallCommand = {};
+CallCommand.__index = CallCommand;
+setmetatable(CallCommand, Command);
+
+function CallCommand:new(name, func)
+  local obj = Command:new(name);
+  obj.func = func;
+  setmetatable(obj, self);
+  return obj;
+end;
+
+--Вызывает попытку перемещения ячейки в модели по указанным аргументам
+function CallCommand:TryExecute(args)
+  if (#args > 0) then return false; end;
+  
+  self.func();
+  return true;
+end;
 return {
   Command = Command,
-  MoveCommand = MoveCommand
+  MoveCommand = MoveCommand,
+  CallCommand = CallCommand
 }
