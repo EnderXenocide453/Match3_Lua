@@ -11,6 +11,7 @@ function GridCell:new(cellTypes)
   local obj = {
     possibleTypes = possibleTypes,
     cellType = emptySymbol;
+    --Для реализации особых ячеек здесь также можно разместить ссылку на метод или класс особой ячейки
   };
   
   setmetatable(obj, self);
