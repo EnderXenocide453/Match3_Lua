@@ -1,5 +1,6 @@
 emptySymbol = " ";
 local GridCell = require("GridCell");
+local CombinationsChecker = require("CombinationsChecker");
 
 local GameField = {};
 GameField.__index = GameField;
@@ -11,10 +12,11 @@ function GameField:new(width, height, cellTypes)
 		height = height,
 		cellTypes = cellTypes,
     combinations = {},
-    updateQueue = {}
+    updateQueue = {},
+    cellsCount = {}
 	};
   
-  obj.grid = {};
+  obj.grid = {width = width, height = height};
   for x = 1, width do
     obj.grid[x] = {};
 		for y = 1, height do
@@ -22,7 +24,13 @@ function GameField:new(width, height, cellTypes)
 		end
 	end
 
-	setmetatable(obj, self);
+	for _,v in pairs(cellTypes) do
+    obj.cellsCount[v] = 0;
+  end;
+  obj.cellsCount[emptySymbol] = width * height;
+  obj.count = width * height;
+  
+  setmetatable(obj, self);
 
 	return obj;
 end
@@ -38,14 +46,14 @@ end
 
 --Перемешивание
 function GameField:Mix()
-
+  print("Mix");
 end
 
 --Генерация подходящей ячейки в координатах X и Y
 function GameField:GenerateCell(x, y)
 	local possibleTypes = self.grid[x][y].possibleTypes;
 	local cellType = possibleTypes[math.random(1, #possibleTypes)];
-  self.grid[x][y]:SetType(cellType);
+  self:SetCell(x, y, cellType, true);
   
   if (x > 1 and x < self.width and self.grid[x-1][y].cellType == cellType) then
     self.grid[x+1][y]:RemovePossibleType(cellType);
@@ -55,11 +63,15 @@ function GameField:GenerateCell(x, y)
 	end;
 end
 
-function GameField:SetCell(x, y, cellType)
+function GameField:SetCell(x, y, cellType, withoutUpdate)
   --Если не выходит за рамки и не такой же
   if (x > 0 and x <= self.width and y > 0 and y <= self.height and self.grid[x][y].cellType ~= cellType) then
+    self.cellsCount[cellType] = self.cellsCount[cellType] + 1;
+    self.cellsCount[self.grid[x][y].cellType] = self.cellsCount[self.grid[x][y].cellType] - 1;
     self.grid[x][y]:SetType(cellType);
-    self:AddToUpdateQueue(x, y);
+    if (not withoutUpdate) then
+      self:AddToUpdateQueue(x, y);
+    end;
   end;
 end
 
@@ -68,7 +80,7 @@ function GameField:ClearCell(x, y)
 end
 
 function GameField:TrySwap(from, to)
-  if (from == to) then
+  if (not CombinationsChecker.IsCanSwap(self, from, to)) then
     return false;
   end;
   
@@ -77,15 +89,6 @@ function GameField:TrySwap(from, to)
   
   self:SetCell(from.x, from.y, toType);
   self:SetCell(to.x, to.y, fromType);
-  
-  self:CheckCombinations();
-  --Если нет комбинаций, перемещение невозможно
-  if (#self.combinations == 0) then
-    self:SetCell(from.x, from.y, fromType);
-    self:SetCell(to.x, to.y, toType);
-    
-    return false;
-  end;
   
   return true;
 end
@@ -124,7 +127,7 @@ function GameField:UpdateCells()
     self:UpdateCell(x, y)
   end;
   
-  self:CheckCombinations();
+  self.combinations = CombinationsChecker.CheckCombinations(self);
   
   self.updateQueue = {};
 end
@@ -153,83 +156,5 @@ function GameField:UpdateCell(x, y)
     end;
   end;
 end
-
-function GameField:CheckCombinations()
-  self.combinations = {};
-  
-  for x, depth in pairs(self.updateQueue) do
-    for y = 1, depth do
-      local combination = self:CheckCombination(x, y, self.grid);
-      if (combination ~= nil) then
-        self.combinations[#self.combinations + 1] = combination;
-      end;
-    end;
-  end;
-end;
-
-function GameField:CheckCombination(x, y, grid)
-  local combination = {
-    count = 1,
-    x = x,
-    y = y
-  };
-  
-  if (grid[x][y] == nil or grid[x][y].cellType == emptySymbol) then
-    return combination;
-  end;
-  
-  --Поиск по горизонтали
-  --Проход влево пока он возможен
-  local left = x;
-  while left > 1 do
-    if (grid[x][y].cellType ~= grid[left - 1][y].cellType) then
-      break;
-    end;
-    left = left - 1;
-  end;
-  --Проход вправо
-  local right = x;
-  while right < self.width do
-    if (grid[x][y].cellType ~= grid[right + 1][y].cellType) then
-      break;
-    end;
-    right = right + 1;
-  end;
-  --Если совпадений достаточно для комбинации, записываем
-  if (right - left) >= 2 then
-    combination.count = combination.count + right - left;
-    combination.left = left;
-    combination.right = right;
-  end;
-  
-  --Проход по вертикали
-  --Проход влево пока он возможен
-  local up = y;
-  while up > 1 do
-    if (grid[x][y].cellType ~= grid[x][up - 1].cellType) then
-      break;
-    end;
-    up = up - 1;
-  end;
-  --Проход вправо
-  local down = y;
-  while down < self.height do
-    if (grid[x][y].cellType ~= grid[x][down + 1].cellType) then
-      break;
-    end;
-    down = down + 1;
-  end;
-  --Если совпадений достаточно для комбинации, записываем
-  if (down - up) >= 2 then
-    combination.count = combination.count + down - up;
-    combination.up = up;
-    combination.down = down;
-  end;
-  
-  if (combination.count > 1) then
-    return combination;
-  end;
-  return nil;
-end;
 
 return GameField;

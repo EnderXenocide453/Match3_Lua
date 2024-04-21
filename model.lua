@@ -2,11 +2,16 @@ local GameField = require "GameField";
 local FieldView = require "FieldView";
 local CommandReceiver = require "CommandReceiver";
 local Commands = require "Commands";
+local CombinationsChecker = require("CombinationsChecker");
 math.randomseed(os.time());
 
 local gameField;
 local fieldView;
 local commandReceiver;
+
+local width = 10;
+local height = 10;
+local cellTypes = {"A", "B", "C", "D", "E", "F"};
 
 function init()
   commandReceiver = CommandReceiver:new(
@@ -14,10 +19,11 @@ function init()
       Commands.MoveCommand:new(move),
       Commands.Command:new()
     });
-  gameField = GameField:new(10, 10, {"A", "B", "C", "D", "E", "F"});
+  gameField = GameField:new(width, height, cellTypes);
   fieldView = FieldView:new(gameField);
   gameField:Init();
   dump();
+  checkForCombinations();
 end;
 
 function tick()
@@ -31,6 +37,10 @@ function tick()
     dump();
   until(#gameField.combinations == 0)
   
+  for k, v in pairs(gameField.cellsCount) do
+    print(k..": "..v);
+  end;
+  checkForCombinations();
   waitInput();
 end;
 
@@ -52,6 +62,13 @@ function waitInput()
   while commandReceiver:ReceiveCommand() == false do
     print("Wrong command!");
   print("Enter command...");
+  end;
+end;
+
+function checkForCombinations()
+  while (not CombinationsChecker.CheckCombinationPossibility(gameField)) do
+    gameField:Mix();
+    dump();
   end;
 end;
 

@@ -9,6 +9,30 @@ function split (inputstr, sep)
         return t
 end
 
+function getRandomWithWeights(weightedValues, totalCount)
+  if (totalCount == nil) then
+    totalCount = 0;
+    
+    for _,v in pairs(weightedValues) do
+      if (type(v) == "number") then
+        totalCount = totalCount + v;
+      end;
+    end;
+  end;
+  
+  local value = math.random() * totalCount;
+  for k,v in pairs(weightedValues) do
+      if (type(v) == "number") then
+        if (value < v) then 
+          return k;
+        end;
+        
+        value = value - v;
+      end;
+    end;
+end
+
 return {
-  split = split
+  split = split,
+  getRandomWithWeights = getRandomWithWeights
 };
